@@ -62,7 +62,7 @@ To ensure system stability before hardware deployment, we utilize a **Digital Tw
    Access `http://localhost:8086` to view real-time telemetry.
 
 ---
-**Lead Engineer:** [Fakrul Islam](https://github.com/your-profile)  
+**Lead Engineer:** [Md Fakrul Islam Taraque](https://github.com/MdFakrulIslamTaraque)  
 **Vision:** From Data Engineering to Edge AI Infrastructure Research.
 
 ---
