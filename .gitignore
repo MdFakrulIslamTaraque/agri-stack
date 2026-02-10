@@ -1,0 +1,18 @@
+.venv
+__pycache__
+
+# ide based files
+.vscode
+.idea
+.DS_Store
+
+# obsidian based files
+.obsidian
+
+# log files
+*.log
+
+# config files
+.env
+
+
