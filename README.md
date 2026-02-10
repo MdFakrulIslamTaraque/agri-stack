@@ -12,51 +12,56 @@ Poultry farming in tropical regions (specifically Bangladesh) is plagued by high
 
 ---
 
-## 2. System Architecture (The DE Stack)
-The project is architected to demonstrate a professional **Modern Data Stack** capable of handling thousands of sensors at scale.
+## 2. Current Architecture (Lite / Local Development)
+Due to resource constraints (8GB RAM), the initial development phase uses a **Serverless / Cloud-Hybrid** approach:
 
-*   **Edge Layer (IoT):** 
-    *   **ESP32-CAM:** Real-time behavioral analysis (Chick clustering detection via Centroid Distance).
-    *   **ESP32 DevKit:** Multi-sensor telemetry (Temp, Humidity, Ammonia/NH3).
-    *   **Logic:** Implements a **Store-and-Forward** buffer to handle intermittent rural WiFi.
-*   **Ingestion Layer:** 
-    *   **MQTT (Mosquitto):** Lightweight IoT broker.
-    *   **Redpanda (Kafka-Compatible):** High-throughput message bus for stream persistence.
-*   **Processing Layer:** 
-    *   **Apache Spark (Structured Streaming):** Real-time feature engineering (Heat Index, windowed smoothing).
-    *   **Logic:** Handling late-arriving data via Watermarking.
-*   **Storage Layer:** 
-    *   **MinIO (S3-Compatible):** Local object storage.
-    *   **Delta Lake:** Ensuring ACID transactions and schema enforcement on Parquet-backed time-series data.
-*   **Orchestration & MLOps:** 
-    *   **Apache Airflow:** Scheduling batch ETL and model retraining.
-    *   **MLflow:** Experiment tracking for microclimate forecasting models.
+*   **Mock Sensor (Simulation):** Python script simulating ESP32 telemetry (Temp, Humidity, Ammonia).
+*   **Message Broker (Cloud):** **HiveMQ Cloud** (MQTT) for reliable data transport.
+*   **Ingestion Bridge:** A lightweight Python service (`ingest_to_supabase.py`) that subscribes to MQTT and upserts data.
+*   **Database (Cloud):** **Supabase** (PostgreSQL) with `TimescaleDB` optimizations for time-series data.
+*   **Visualization:** **Streamlit** Dashboard for real-time monitoring and alerts.
 
 ---
 
-## 3. Real-World Field Challenges (Problem Statements)
-*   **Manual Medication:** Transitioning from hand-mixing to **Automated Volumetric Dosing** (Peristaltic Pump + Flow Sensor).
-*   **Ammonia Management:** Automated mitigation of NH3 toxicity via **MQ-135 sensors** and adaptive ventilation.
-*   **Thermal Comfort:** Replacing manual observation with **CV-based Behavioral Proxies** (Huddling/Scattering detection).
+## 3. Deployment Guide (Quick Start)
 
----
+### Prerequisites
+1.  **Python 3.9+** installed.
+2.  Create a `.env` file with your HiveMQ and Supabase credentials (see `.env.example`).
+3.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## 4. Local Development Strategy
-The project follows a **"Digital Twin"** first approach.
-1.  **Phase 1 (Infrastructure):** Dockerize the full stack (Mosquitto, Redpanda, MinIO, InfluxDB).
-2.  **Phase 2 (Simulation):** Python-based mock sensors to stress-test the Spark Streaming pipelines.
-3.  **Phase 3 (Hardware):** Integration of ESP32 physical nodes.
+### Running the Pipeline (3 Terminals Required)
+To run the full system, open **3 separate terminal windows**:
 
----
-
-## 5. Deployment Guide
+**Terminal 1: Ingestion Bridge** (Connects HiveMQ -> Supabase)
 ```bash
-# 1. Start the Dockerized Infrastructure
-docker-compose up -d
-
-# 2. Monitor Streams
-# Use MQTT Explorer on port 1883 or Redpanda Console on port 8080
+source .venv/bin/activate
+python scripts/ingest_to_supabase.py
 ```
+
+**Terminal 2: Mock Sensor** (Generates telemetry -> HiveMQ)
+```bash
+source .venv/bin/activate
+python scripts/mock_sensor.py
+```
+
+**Terminal 3: Streamlit Dashboard** (Visualizes Supabase data)
+```bash
+source .venv/bin/activate
+streamlit run dashboard/app.py
+```
+
+---
+
+## 4. Future Roadmap (Scale-Out)
+For production scale deployment, the architecture will evolve to:
+*   **Edge Layer:** Physical ESP32 nodes with LoRaWAN/WiFi.
+*   **Ingestion:** **Redpanda** (Kafka-compatible) for high-throughput buffering.
+*   **Processing:** **Apache Spark** for complex event processing.
+*   **MLOps:** **MLflow** for model registry and **Airflow** for orchestration.
 
 ---
 **Lead Engineer:** [Md Fakrul Islam Taraque](https://github.com/MdFakrulIslamTaraque)  
