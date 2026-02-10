@@ -3,66 +3,60 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Field: Agri-Tech](https://img.shields.io/badge/Field-Agri--Tech-green)](https://github.com/)
-[![Tech: Data Engineering](https://img.shields.io/badge/Focus-Data--Engineering-blue)](https://github.com/)
+[![Focus: Data Engineering](https://img.shields.io/badge/Focus-Data--Engineering-blue)](https://github.com/)
 
 ## 1. Executive Summary
-Poultry farming in tropical regions (specifically Bangladesh) faces high mortality rates due to **Heat Stress** and **Ammonia Toxicity**. Traditional monitoring is reactive and manual. 
+Poultry farming in tropical regions (specifically Bangladesh) is plagued by high mortality rates due to human error in manual dosing and reactive climate control. 
 
-**Agri-Stack** is a proactive, end-to-end data platform that leverages **Edge AI** for behavioral analysis and **Distributed Data Processing** for microclimate forecasting. It transitions poultry management from "Observation-based" to "Data-Driven Prediction."
+**Agri-Stack** is a professional-grade MLOps platform that transitions poultry management from "Observation-based" to "Data-Driven Prediction." The system is designed to handle high-frequency sensor streams and provide real-time automated intervention for life-critical poultry environments.
 
 ---
 
 ## 2. System Architecture (The DE Stack)
 The project is architected to demonstrate a professional **Modern Data Stack** capable of handling thousands of sensors at scale.
 
-*   **Edge Layer:** ESP32-based sensors (DHT22, MQ-135) and ESP32-CAM. Implements **Store-and-Forward** logic to handle intermittent rural WiFi connectivity.
-*   **Ingestion Layer:** Containerized **Eclipse Mosquitto (MQTT)** acting as the broker, bridged to a **Redpanda/Kafka** message bus for fault-tolerant data streaming.
-*   **Processing Layer:** **Apache Spark (Structured Streaming)** for real-time feature engineering (Heat Index calculation, windowed averages) and anomaly detection.
-*   **Storage Layer (Data Lakehouse):** **MinIO (S3-compatible)** using **Delta Lake** format to ensure ACID transactions on IoT time-series data.
-*   **Orchestration:** **Apache Airflow** for daily ETL jobs, model retraining triggers, and health reporting.
-*   **MLOps:** **DVC (Data Version Control)** for scientific reproducibility and **MLflow** for experiment tracking.
+*   **Edge Layer (IoT):** 
+    *   **ESP32-CAM:** Real-time behavioral analysis (Chick clustering detection via Centroid Distance).
+    *   **ESP32 DevKit:** Multi-sensor telemetry (Temp, Humidity, Ammonia/NH3).
+    *   **Logic:** Implements a **Store-and-Forward** buffer to handle intermittent rural WiFi.
+*   **Ingestion Layer:** 
+    *   **MQTT (Mosquitto):** Lightweight IoT broker.
+    *   **Redpanda (Kafka-Compatible):** High-throughput message bus for stream persistence.
+*   **Processing Layer:** 
+    *   **Apache Spark (Structured Streaming):** Real-time feature engineering (Heat Index, windowed smoothing).
+    *   **Logic:** Handling late-arriving data via Watermarking.
+*   **Storage Layer:** 
+    *   **MinIO (S3-Compatible):** Local object storage.
+    *   **Delta Lake:** Ensuring ACID transactions and schema enforcement on Parquet-backed time-series data.
+*   **Orchestration & MLOps:** 
+    *   **Apache Airflow:** Scheduling batch ETL and model retraining.
+    *   **MLflow:** Experiment tracking for microclimate forecasting models.
 
 ---
 
-## 3. Core Research Scopes (PhD Narrative)
-This project serves as the foundation for research in **Cyber-Physical Systems (CPS)**:
-1.  **Behavioral Proxy Metrics:** Using Computer Vision (Centroid Distance Analysis) to estimate thermal comfort without expensive infrared hardware.
-2.  **Edge-Cloud Hybrid Inference:** Optimizing model latency by running lightweight Anomaly Detection on the ESP32 (TinyML) while running complex LSTM forecasting in the cloud.
-3.  **Resilient Architectures:** Designing systems that maintain data integrity in low-bandwidth, high-latency environments.
+## 3. Real-World Field Challenges (Problem Statements)
+*   **Manual Medication:** Transitioning from hand-mixing to **Automated Volumetric Dosing** (Peristaltic Pump + Flow Sensor).
+*   **Ammonia Management:** Automated mitigation of NH3 toxicity via **MQ-135 sensors** and adaptive ventilation.
+*   **Thermal Comfort:** Replacing manual observation with **CV-based Behavioral Proxies** (Huddling/Scattering detection).
 
 ---
 
-## 4. Current Progress: Digital Twin (Phase 1)
-To ensure system stability before hardware deployment, we utilize a **Digital Twin simulation**:
-- [x] Dockerized Infrastructure (Mosquitto, InfluxDB).
-- [x] Python-based Mock Sensor (Intermittent data simulation).
-- [ ] PySpark Streaming Integration.
-- [ ] ESP32 Hardware Integration.
+## 4. Local Development Strategy
+The project follows a **"Digital Twin"** first approach.
+1.  **Phase 1 (Infrastructure):** Dockerize the full stack (Mosquitto, Redpanda, MinIO, InfluxDB).
+2.  **Phase 2 (Simulation):** Python-based mock sensors to stress-test the Spark Streaming pipelines.
+3.  **Phase 3 (Hardware):** Integration of ESP32 physical nodes.
 
 ---
 
-## 5. Local Setup (Development)
+## 5. Deployment Guide
+```bash
+# 1. Start the Dockerized Infrastructure
+docker-compose up -d
 
-### Prerequisites
-- Docker & Docker Compose
-- Python 3.9+
-- MQTT Explorer (for debugging)
-
-### Deployment
-1. **Launch Infrastructure:**
-   ```bash
-   docker-compose up -d
-   ```
-2. **Start Mock Sensor (Digital Twin):**
-   ```bash
-   pip install paho-mqtt
-   python scripts/mock_sensor.py
-   ```
-3. **Monitor InfluxDB:**
-   Access `http://localhost:8086` to view real-time telemetry.
+# 2. Monitor Streams
+# Use MQTT Explorer on port 1883 or Redpanda Console on port 8080
+```
 
 ---
 **Lead Engineer:** [Md Fakrul Islam Taraque](https://github.com/MdFakrulIslamTaraque)  
-**Vision:** From Data Engineering to Edge AI Infrastructure Research.
-
----
