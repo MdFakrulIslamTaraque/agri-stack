@@ -86,3 +86,107 @@ This means something else is already talking to the Arduino.
 1.  **Check Arduino IDE:** Did you leave the **Serial Monitor** window open? **Close it.**
 2.  **Check other terminals:** Did you leave an old version of the script running?
 3.  **Fix:** Close the Serial Monitor and try running the command again.
+
+---
+
+---
+
+# ⚡ V1: Real Sensors (ESP32 + DHT22 + MQ-137)
+
+This section documents the real hardware setup once the kits arrived.
+
+## 🧰 Bill of Materials
+| Component | What it measures |
+|---|---|
+| ESP32 NodeMCU (30P, Type-C) | The Brain + WiFi |
+| DHT22 (AM2302) | Real Temperature + Humidity |
+| MQ-137 | Ammonia Gas (NH3) |
+| Breadboard | Power distribution |
+| Male-to-Male / Male-to-Female jumper wires | Connections |
+
+---
+
+## 📐 Wiring Diagram
+
+### Key Difference: ESP32 uses 3.3V logic (not 5V like Arduino!)
+- **DHT22** runs on 3.3V → safe to connect directly.
+- **MQ-137** needs 5V for its heater → use the **VIN** pin (which is 5V when powered by USB).
+
+### Step 1: Power the Breadboard (same as before)
+1.  **ESP32 3.3V** → Red (+) rail on breadboard.
+2.  **ESP32 GND** → Blue (-) rail on breadboard.
+
+### Step 2: Wire the DHT22 (Temperature + Humidity)
+```
+DHT22 Module pins (left to right, based on your picture):
+  +   |  out  |  -
+
+  +   → 3V3  (Red Rail on breadboard)
+  -   → GND  (Blue Rail on breadboard)
+  out → D4 on ESP32 (Green wire in your picture)
+```
+> 💡 Since your module has 3 pins, the pull-up resistor is already built-in. You can connect it directly to the ESP32!
+
+### Step 3: Wire the MQ-137 (Ammonia Sensor)
+```
+MQ-137 Module pins (top to bottom in your picture):
+  AO  |  DO  |  GND  |  VCC
+
+  VCC → VIN pin on ESP32  (This is 5V, needed for MQ heater!)
+  GND → GND (Blue Rail)
+  AO  → D34 on ESP32  (Analog input)
+  DO  → (Leave unconnected)
+```
+> ⚠️ **Do NOT connect MQ-137 VCC to 3V3** — the heater inside won't work. Use **VIN** (5V).
+
+### ESP32 Pin Reference (Based on your picture)
+Instead of "GPIO", your board simply labels the pins with "D" (Digital) or specific functions.
+
+- **Power:**
+  - `3V3`: 3.3V Power Output
+  - `GND`: Ground
+  - `VIN`: 5V Input/Output (When plugged into USB, this outputs 5V)
+- **Data:**
+  - `D4`: Connect to DHT22 `out`
+  - `D34`: Connect to MQ-137 `AO`
+
+---
+
+## 💻 Upload the Firmware
+
+### Install the ESP32 Board in Arduino IDE
+1.  Open Arduino IDE. Go to `File` > `Preferences`.
+2.  In **"Additional boards manager URLs"**, paste:
+    ```
+    https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+    ```
+3.  Go to `Tools` > `Board` > `Boards Manager...`, search **esp32**, install **"esp32 by Espressif"**.
+
+### Install the DHT Library
+1.  Go to `Sketch` > `Include Library` > `Manage Libraries...`
+2.  Search for **DHT sensor library** by **Adafruit**. Click **Install**.
+3.  When prompted to install dependencies, click **Install All**.
+
+### Upload
+1.  Open `firmware/esp32_real_sensors/esp32_real_sensors.ino` in Arduino IDE.
+2.  `Tools` > `Board` → select **"ESP32 Dev Module"** or **"NodeMCU-32S"**.
+3.  `Tools` > `Port` → select the port (will appear as `/dev/ttyUSB0` on Linux).
+4.  Click **Upload (➜)**.
+5.  Open **Serial Monitor**, set baud to **115200**.
+6.  You should see lines like:
+    ```json
+    {"device_id": "esp32-v1", "temperature": 28.5, "humidity": 62.0, "ammonia": 15, "mq_raw": 612}
+    ```
+
+---
+
+## 🐍 Run the Python Bridge (same as before!)
+
+Close the Serial Monitor, then:
+```bash
+source .venv/bin/activate
+
+# ESP32 usually appears as /dev/ttyUSB0 (not ttyACM0 like Arduino)
+python scripts/serial_bridge.py /dev/ttyUSB0
+```
+The rest is identical to the Arduino flow. Data → HiveMQ → Supabase → Dashboard.
